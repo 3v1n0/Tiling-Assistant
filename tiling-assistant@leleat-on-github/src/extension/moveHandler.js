@@ -257,7 +257,12 @@ export default class TilingMoveHandler {
 
     _onMoveFinished(window) {
         try {
-            window.assertExistence();
+            // Ignore the expected error when the window was destroyed during the grab.
+            try {
+                window.assertExistence();
+            } catch {
+                return;
+            }
 
             if (this._tileRect) {
                 // Ctrl-drag to replace some windows in a tile group / create a new tile group
