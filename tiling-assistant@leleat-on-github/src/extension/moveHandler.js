@@ -293,6 +293,12 @@ export default class TilingMoveHandler {
                 this._dragSprite = null;
             }
         } finally {
+            // Leaving it pending would re-enter _edgeTilingPreview() on a destroyed window
+            if (this._latestMonitorLockTimerId) {
+                GLib.Source.remove(this._latestMonitorLockTimerId);
+                this._latestMonitorLockTimerId = null;
+            }
+
             if (this._posChangedId) {
                 window.disconnect(this._posChangedId);
                 this._posChangedId = 0;
@@ -497,7 +503,8 @@ export default class TilingMoveHandler {
                     // Only update the monitorNr, if the latest timer timed out.
                     if (timerId === this._latestMonitorLockTimerId) {
                         this._monitorNr = global.display.get_current_monitor();
-                        if (global.display.is_grabbed())
+                        // check that the window still exists, and a grab is still active
+                        if (global.display.is_grabbed() && window.get_compositor_private())
                             this._edgeTilingPreview(window, grabOp);
                     }
 
